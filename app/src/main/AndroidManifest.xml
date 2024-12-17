@@ -3,10 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.gpsmapapp">
 
+    <!-- Permisos de ubicación -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
     <application
         android:allowBackup="true"
@@ -19,16 +21,26 @@
         android:theme="@style/Theme.GPSMapApp"
         tools:targetApi="31">
 
-        <meta-data android:name="com.google.android.geo.API_KEY"
+        <!-- Clave API para Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAKTv5f5HdwJiv7S0djIAN6CnggPRaj_HY"/>
+
+        <!-- Login como pantalla principal -->
         <activity
-            android:name=".MainActivity"
+            android:name=".Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <activity android:name=".Registro"/>
+
+        <!-- MainActivity (otra actividad, no inicial) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
+    </application>
 </manifest>

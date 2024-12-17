@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "136336130154",
+    "project_id": "seguimiento-de-rutas-fbac1",
+    "storage_bucket": "seguimiento-de-rutas-fbac1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136336130154:android:0f2ad5b7e86873c5f34a13",
+        "android_client_info": {
+          "package_name": "com.example.seguimientoderutas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAK2eRr7LrICO8qz3U2thaCGO2mI2Mo3mM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

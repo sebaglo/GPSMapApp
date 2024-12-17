@@ -2,15 +2,20 @@ package com.example.gpsmapapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -25,6 +30,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMapLongClickListener {
 
@@ -34,14 +43,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback locationCallback;
     private Marker userLocationMarker;
     private FloatingActionButton fabZoomIn, fabZoomOut, fabTraffic, fabMapType;
-
     private boolean trafficEnabled = false;
+    private FirebaseFirestore db;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Inicialización de UI
         txtLatitud = findViewById(R.id.txtLatitud);
         txtLongitud = findViewById(R.id.txtLongitud);
 
@@ -54,6 +65,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Inicializar el cliente de ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // Inicializar Firebase Firestore
+        db = FirebaseFirestore.getInstance();
+
+        // Configurar el mapa
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
@@ -144,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 updateLocationUI(location);
+                saveLocationToFirebase(location);  // Guardar la ubicación en Firestore
             } else {
                 Toast.makeText(getApplicationContext(), "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show();
             }
@@ -161,10 +177,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (userLocationMarker != null) {
                 userLocationMarker.setPosition(currentLatLng);
             } else {
-                userLocationMarker = mMap.addMarker(new MarkerOptions().position(currentLatLng).title("Tu ubicación actual"));
+                // Añadir un marcador personalizado para la ubicación
+                userLocationMarker = mMap.addMarker(new MarkerOptions()
+                        .position(currentLatLng)
+                        .title("Tu ubicación actual")
+                        .snippet("Lat: " + location.getLatitude() + ", Long: " + location.getLongitude()));
             }
+
+            // Mover el mapa hacia la nueva ubicación
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
         }
+    }
+
+    private void saveLocationToFirebase(Location location) {
+        // Crear un mapa de datos para Firebase
+        Map<String, Object> locationData = new HashMap<>();
+        locationData.put("latitude", location.getLatitude());
+        locationData.put("longitude", location.getLongitude());
+
+        // Guardar la ubicación en Firestore
+        db.collection("user_locations")
+                .add(locationData)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(MainActivity.this, "Ubicación guardada correctamente", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(MainActivity.this, "Error al guardar la ubicación", Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override
@@ -173,51 +212,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMapClickListener(this);
         mMap.setOnMapLongClickListener(this);
 
-        // Permitir la ubicación en tiempo real si se conceden los permisos
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-            getCurrentLocation();
+        // Verificar si los permisos de ubicación de Google están concedidos
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            // Si los permisos de Google están concedidos, comprobar si la ubicación está habilitada
+            if (isLocationEnabled()) {
+                mMap.setMyLocationEnabled(true);
+                getCurrentLocation();
+            } else {
+                // Si la ubicación no está habilitada, abrir la configuración
+                Toast.makeText(this, "Por favor, habilita la ubicación", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivity(intent);
+            }
+        } else {
+            // Si no se han concedido los permisos, solicitarlos
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
-        LatLng chile = new LatLng(-30.5856512, -71.1852032);
-        mMap.addMarker(new MarkerOptions().position(chile).title("Chile"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(chile, 10f));
+        // Centrar el mapa en Ovalle (o en la ubicación inicial deseada)
+        LatLng ovalle = new LatLng(-30.6039, -71.1999);
+        mMap.addMarker(new MarkerOptions().position(ovalle).title("Ovalle"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ovalle, 15f));
+    }
+
+    private boolean isLocationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
     @Override
     public void onMapClick(@NonNull LatLng latLng) {
         txtLatitud.setText(String.valueOf(latLng.latitude));
         txtLongitud.setText(String.valueOf(latLng.longitude));
+
+        // Añadir un marcador cuando el usuario hace clic en el mapa
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Marcador Añadido")
+                .snippet("Lat: " + latLng.latitude + ", Long: " + latLng.longitude));
+
+        // Puedes almacenar este marcador en Firebase si lo deseas
     }
 
     @Override
     public void onMapLongClick(@NonNull LatLng latLng) {
-        mMap.addMarker(new MarkerOptions().position(latLng).title("Marcador añadido"));
+        // Añadir un marcador al hacer un largo clic
+        mMap.addMarker(new MarkerOptions().position(latLng).title("Marcador largo clic"));
         txtLatitud.setText(String.valueOf(latLng.latitude));
         txtLongitud.setText(String.valueOf(latLng.longitude));
-    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getCurrentLocation();
-            } else {
-                Toast.makeText(this, "Permisos de ubicación denegados", Toast.LENGTH_SHORT).show();
-            }
-        }
+        // Puedes almacenar este marcador en Firebase si lo deseas
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         fusedLocationClient.removeLocationUpdates(locationCallback);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        startLocationUpdates();
     }
 }
