@@ -1,4 +1,4 @@
-package com.example.gpsmapapp;
+package com.example.seguimientoderutas;
 
 import android.content.Context;
 

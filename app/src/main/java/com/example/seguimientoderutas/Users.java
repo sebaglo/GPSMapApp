@@ -1,4 +1,4 @@
-package com.example.gpsmapapp;
+package com.example.seguimientoderutas;
 
 public class Users {
     private String name;
