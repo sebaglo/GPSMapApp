@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.seguimientoderutas">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permisos de ubicación -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -24,7 +23,7 @@
         <!-- Clave API para Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAKTv5f5HdwJiv7S0djIAN6CnggPRaj_HY"/>
+            android:value="AIzaSyDUFrCSei9dJ12vJCc-VrdTEjFrv8Ogags"/>
 
         <!-- Login como pantalla principal -->
         <activity
@@ -35,6 +34,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name="com.example.seguimientoderutas.RouteHistoryActivity" />
+
 
         <activity android:name="com.example.seguimientoderutas.Registro"/>
 
