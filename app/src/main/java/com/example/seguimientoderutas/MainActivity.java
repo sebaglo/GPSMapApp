@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fabZoomOut = findViewById(R.id.fab_zoom_out);
         fabTraffic = findViewById(R.id.fab_traffic);
         fabMapType = findViewById(R.id.fab_map_type);
-        fabStartEndRoute = findViewById(R.id.btn_start_route); // Botón para iniciar/finalizar la ruta
+        fabRouteHistory = findViewById(R.id.routeHistoryRecyclerView);
+        fabStartEndRoute = findViewById(R.id.btn_start_route);
 
         // Inicializar el cliente de ubicación
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -345,9 +346,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(10000); // Actualizaciones cada 10 segundos
-        locationRequest.setFastestInterval(5000); // La más rápida cada 5 segundos
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); // Prioridad alta para obtener precisión
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(5000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationRequest;
     }
 

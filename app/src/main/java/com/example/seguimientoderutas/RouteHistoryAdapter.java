@@ -44,7 +44,7 @@ public class RouteHistoryAdapter extends RecyclerView.Adapter<RouteHistoryAdapte
 
         public RouteViewHolder(View itemView) {
             super(itemView);
-            routeTextView = itemView.findViewById(R.id.routeTextView);
+            routeTextView = itemView.findViewById(R.id.routeInfoTextView);
         }
     }
 }
